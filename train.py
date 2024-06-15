@@ -1,26 +1,40 @@
 import torch
-import tqdm
+from tqdm import tqdm
 from datasets import load_dataset
 from dataset import BitcoinDataset
 from torch.utils.data import DataLoader
 from config import parse_option
 from model import Bitcoin
-
+import time
 
 
 class Trainer:
-    def __init__(self, model, optimizer, criterion, train_loader, epochs, device):
+    def __init__(
+        self,
+        model,
+        optimizer,
+        criterion,
+        train_loader,
+        valid_loader,
+        epochs,
+        batch_size,
+        window_size,
+        device,
+    ):
         self.model = model
         self.epochs = epochs
         self.optimizer = optimizer
         self.criterion = criterion
         self.train_loader = train_loader
+        self.valid_loader = valid_loader
+        self.batch_size = batch_size
+        self.window_size = window_size
         self.device = device
 
     def train(self, epoch):
         self.model.train()
         total_loss = 0
-        progress_bar = tqdm.tqdm(enumerate(self.train_loader), total=len(self.train_loader))
+        progress_bar = tqdm(enumerate(self.train_loader), total=len(self.train_loader))
         for i, (x, y) in progress_bar:
             x, y = x.to(self.device), y.to(self.device)
             self.optimizer.zero_grad()
@@ -30,19 +44,19 @@ class Trainer:
                 loss = self.criterion(y_hat, y)
                 loss.backward()
                 self.optimizer.step()
-            total_loss += loss.item()
-            progress_bar.set_description(f"Epoch: {epoch}, Loss: {total_loss/(i+1)}")
-            
-        
-    @torch.no_grad()    
+            total_loss += loss.item() * x.size(0)
+            progress_bar.set_description(f"Epoch: {epoch+1}, Loss: {loss.item():.4f}")
+
+    @torch.no_grad()
     def valid(self):
         self.model.eval()
         total_loss = 0
-        for i, (x, y) in enumerate(tqdm.tqdm(self.train_loader)):
+        for x, y in self.valid_loader:
             x, y = x.to(self.device), y.to(self.device)
             y_hat = self.model(x)
+            y_hat = y_hat.squeeze(-1)
             loss = self.criterion(y_hat, y)
-            total_loss += loss.item()
+            total_loss += loss.item()*x.size(0)
         print(f"Validation Loss: {total_loss/len(self.train_loader)}")
 
     def fit(self):
@@ -51,27 +65,25 @@ class Trainer:
             self.valid()
 
 
-
 if __name__ == "__main__":
     opt = parse_option()
 
     DEVICE = opt.device
     BATCH_SIZE = opt.batch_size
     EPOCHS = opt.epochs
-    LEARNING_RATE = opt.lr  
+    LEARNING_RATE = opt.lr
+    WINDOW_SIZE = opt.window_size
     torch.manual_seed(opt.seed)
     torch.cuda.manual_seed(opt.seed)
-
 
     model = Bitcoin()
     model.to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = torch.nn.MSELoss()
 
-
     train_dataset = load_dataset("Onegai/BitcoinPrice", split="train[:90%]")
     valid_dataset = load_dataset("Onegai/BitcoinPrice", split="train[90%:]")
-    columns_to_drop = ["timestamp", "target","__index_level_0__"]
+    columns_to_drop = ["timestamp", "target", "__index_level_0__"]
 
     # Drop the specified columns
     train_dataset = train_dataset.remove_columns(columns_to_drop)
@@ -82,16 +94,7 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-    trainer = Trainer(model, optimizer, criterion, train_loader, EPOCHS, DEVICE)
+    trainer = Trainer(model, optimizer, criterion, train_loader, valid_loader, EPOCHS, BATCH_SIZE, WINDOW_SIZE, DEVICE)
     print("Training the model on", DEVICE)
 
     trainer.fit()
-
-
-
-
-
-
-
-
-
