@@ -84,7 +84,6 @@ class Bitcoin(nn.Module):
         
     def forward(self, x):
         x = x.permute(0,2,1)
-        print(x.shape)
         token_embed = self.linear(x)
         pos_embed = self.positional_embedding(torch.arange(self.window_size,device=self.device))
         x = token_embed + pos_embed
