@@ -59,6 +59,8 @@ if __name__ == "__main__":
     BATCH_SIZE = opt.batch_size
     EPOCHS = opt.epochs
     LEARNING_RATE = opt.lr  
+    torch.manual_seed(opt.seed)
+    torch.cuda.manual_seed(opt.seed)
 
 
     model = Bitcoin()
@@ -81,6 +83,7 @@ if __name__ == "__main__":
     valid_loader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     trainer = Trainer(model, optimizer, criterion, train_loader, EPOCHS, DEVICE)
+    print("Training the model on", DEVICE)
 
     trainer.fit()
 

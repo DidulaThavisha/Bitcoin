@@ -8,6 +8,7 @@ from config import parse_option
 opt = parse_option()
 
 torch.manual_seed(opt.seed)
+torch.cuda.manual_seed(opt.seed)
 WINDOW_SIZE = opt.window_size
 HEAD_SIZE = opt.head_size
 N_EMBED = opt.n_embed
