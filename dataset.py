@@ -18,12 +18,9 @@ class BitcoinDataset(Dataset):
         self.batch_size = batch_size
 
     def __len__(self):
-        return len(self.data)
+        return int(len(self.data)/self.window_size)
 
     def __getitem__(self, idx):
-     
-        print(idx)
-        print(idx+self.window_size)
         try:
             x = self.data[idx:idx+self.window_size]
             y = self.data[idx+1:idx+self.window_size+1]['close']
