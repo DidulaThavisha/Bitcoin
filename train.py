@@ -1,11 +1,11 @@
 import torch
+import torch.nn as nn
 from tqdm import tqdm
-from datasets import load_dataset
+from datasets import load_dataset, DatasetDict
 from dataset import BitcoinDataset
 from torch.utils.data import DataLoader
 from config import parse_option
 from model import Bitcoin
-import time
 
 
 class Trainer:
@@ -44,8 +44,9 @@ class Trainer:
                 loss = self.criterion(y_hat, y)
                 loss.backward()
                 self.optimizer.step()
-            total_loss += loss.item() * x.size(0)
+            total_loss += loss.item()
             progress_bar.set_description(f"Epoch: {epoch+1}, Loss: {loss.item():.4f}")
+        progress_bar.set_description(f"Epoch: {epoch+1}, Loss: {total_loss/len(self.train_loader)}")
 
     @torch.no_grad()
     def valid(self):
@@ -56,8 +57,8 @@ class Trainer:
             y_hat = self.model(x)
             y_hat = y_hat.squeeze(-1)
             loss = self.criterion(y_hat, y)
-            total_loss += loss.item()*x.size(0)
-        print(f"Validation Loss: {total_loss/len(self.train_loader)}")
+            total_loss += loss.item()
+        print(f"Validation Loss: {total_loss/len(self.valid_loader)}")
 
     def fit(self):
         for epoch in range(self.epochs):
@@ -78,8 +79,9 @@ if __name__ == "__main__":
 
     model = Bitcoin()
     model.to(DEVICE)
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    criterion = torch.nn.MSELoss()
+    model = torch.compile(model)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+    criterion = nn.MSELoss()    
 
     train_dataset = load_dataset("Onegai/BitcoinPrice", split="train[:90%]")
     valid_dataset = load_dataset("Onegai/BitcoinPrice", split="train[90%:]")
