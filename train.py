@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from tqdm import tqdm
-from datasets import load_dataset, DatasetDict
+from datasets import load_dataset
 from dataset import BitcoinDataset
 from torch.utils.data import DataLoader
 from config import parse_option
@@ -41,6 +42,8 @@ class Trainer:
             with torch.set_grad_enabled(True):
                 y_hat = self.model(x)
                 y_hat = y_hat.squeeze(-1)
+                y = F.normalize(y, dim=-1)
+                y_hat = F.normalize(y_hat, dim=-1)
                 loss = self.criterion(y_hat, y)
                 loss.backward()
                 self.optimizer.step()
@@ -56,6 +59,8 @@ class Trainer:
             x, y = x.to(self.device), y.to(self.device)
             y_hat = self.model(x)
             y_hat = y_hat.squeeze(-1)
+            y = F.normalize(y, dim=-1)
+            y_hat = F.normalize(y_hat, dim=-1)
             loss = self.criterion(y_hat, y)
             total_loss += loss.item()
         print(f"Validation Loss: {total_loss/len(self.valid_loader)}")
