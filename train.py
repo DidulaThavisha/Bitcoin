@@ -44,7 +44,7 @@ class Trainer:
                 y_hat = y_hat.squeeze(-1)
                 y = y.unsqueeze(0)
                 y_hat = y_hat.unsqueeze(0) 
-                Y = torch.cat([y_hat, y], dim=0)
+                Y = torch.cat([y_hat, y], dim=0)*1000
                 Y = F.normalize(Y, dim=-1)
                 y = Y[0]
                 y_hat = Y[1]
@@ -63,10 +63,12 @@ class Trainer:
             x, y = x.to(self.device), y.to(self.device)
             y_hat = self.model(x)
             y_hat = y_hat.squeeze(-1)
-            Y = torch.cat([y_hat, y], dim=0)
-
-            y = F.normalize(y, dim=-1)
-            y_hat = F.normalize(y_hat, dim=-1)
+            y = y.unsqueeze(0)
+            y_hat = y_hat.unsqueeze(0) 
+            Y = torch.cat([y_hat, y], dim=0)*1000
+            Y = F.normalize(Y, dim=-1)
+            y = Y[0]
+            y_hat = Y[1]
             loss = self.criterion(y_hat, y)
             total_loss += loss.item()
         print(f"Validation Loss: {total_loss/len(self.valid_loader)}")
