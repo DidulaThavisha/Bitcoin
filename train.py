@@ -45,8 +45,8 @@ class Trainer:
                 y = y.unsqueeze(0)
                 y_hat = y_hat.unsqueeze(0) 
                 Y = torch.cat([y_hat, y], dim=0)
-                Y = Y*1e+6
                 Y = F.normalize(Y, dim=-1)
+                Y = Y*1000
                 y = Y[0]
                 y_hat = Y[1]
                 loss = self.criterion(y_hat, y)
@@ -67,8 +67,8 @@ class Trainer:
             y = y.unsqueeze(0)
             y_hat = y_hat.unsqueeze(0) 
             Y = torch.cat([y_hat, y], dim=0)
-            Y = Y*1000
             Y = F.normalize(Y, dim=-1)
+            Y = Y*1000
             y = Y[0]
             y_hat = Y[1]
             loss = self.criterion(y_hat, y)
