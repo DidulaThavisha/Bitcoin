@@ -44,7 +44,8 @@ class Trainer:
                 y_hat = y_hat.squeeze(-1)
                 y = y.unsqueeze(0)
                 y_hat = y_hat.unsqueeze(0) 
-                Y = torch.cat([y_hat, y], dim=0)*1000
+                Y = torch.cat([y_hat, y], dim=0)
+                Y = Y*1000
                 Y = F.normalize(Y, dim=-1)
                 y = Y[0]
                 y_hat = Y[1]
@@ -65,7 +66,8 @@ class Trainer:
             y_hat = y_hat.squeeze(-1)
             y = y.unsqueeze(0)
             y_hat = y_hat.unsqueeze(0) 
-            Y = torch.cat([y_hat, y], dim=0)*1000
+            Y = torch.cat([y_hat, y], dim=0)
+            Y = Y*1000
             Y = F.normalize(Y, dim=-1)
             y = Y[0]
             y_hat = Y[1]
