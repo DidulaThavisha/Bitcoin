@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     model = Bitcoin()
     model.to(DEVICE)
-    model = torch.compile(model)
+    #model = torch.compile(model)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
     criterion = nn.MSELoss()    
 
