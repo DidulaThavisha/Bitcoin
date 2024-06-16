@@ -42,13 +42,17 @@ class Trainer:
             with torch.set_grad_enabled(True):
                 y_hat = self.model(x)
                 y_hat = y_hat.squeeze(-1)
-                y = F.normalize(y, dim=-1)
-                y_hat = F.normalize(y_hat, dim=-1)
+                y = y.unsqueeze(0)
+                y_hat = y_hat.unsqueeze(0) 
+                Y = torch.cat([y_hat, y], dim=0)
+                Y = F.normalize(Y, dim=-1)
+                y = Y[0]
+                y_hat = Y[1]
                 loss = self.criterion(y_hat, y)
                 loss.backward()
                 self.optimizer.step()
             total_loss += loss.item()
-            progress_bar.set_description(f"Epoch: {epoch+1}, Loss: {loss.item():.4f}")
+            progress_bar.set_description(f"Epoch: {epoch+1}, Loss: {loss.item()}")
         progress_bar.set_description(f"Epoch: {epoch+1}, Loss: {total_loss/len(self.train_loader)}")
 
     @torch.no_grad()
@@ -59,6 +63,8 @@ class Trainer:
             x, y = x.to(self.device), y.to(self.device)
             y_hat = self.model(x)
             y_hat = y_hat.squeeze(-1)
+            Y = torch.cat([y_hat, y], dim=0)
+
             y = F.normalize(y, dim=-1)
             y_hat = F.normalize(y_hat, dim=-1)
             loss = self.criterion(y_hat, y)
