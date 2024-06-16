@@ -92,7 +92,7 @@ if __name__ == "__main__":
     model.to(DEVICE)
     #model = torch.compile(model)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
-    criterion = nn.MSELoss()    
+    criterion = nn.MSELoss(reduction="sum")    
 
     train_dataset = load_dataset("Onegai/BitcoinPrice", split="train[:90%]")
     valid_dataset = load_dataset("Onegai/BitcoinPrice", split="train[90%:]")
